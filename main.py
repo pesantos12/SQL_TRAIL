@@ -16,7 +16,7 @@ app = FastAPI()
 # CORS liberado para permitir conexão do front (GitHub Pages) durante desenvolvimento
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # em produção, substituir pelo domínio específico do front-end
+    allow_origins=["https://pesantos12.github.io"],  # em produção, substituir pelo domínio específico do front-end
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
