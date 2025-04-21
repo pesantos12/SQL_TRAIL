@@ -11,7 +11,7 @@ app = FastAPI()
 # CORS liberado para testes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://sql-trail.onrender.com"],  # depois troque para o domínio do front
+    allow_origins=["*"],  # depois troque para o domínio do front
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
