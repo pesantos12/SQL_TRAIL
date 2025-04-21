@@ -1,0 +1,502 @@
+[
+    {
+      "id": 1,
+      "enunciado": "Selecione todos os registros da tabela de cargos.",
+      "resposta_base": "SELECT * FROM jobs;"
+    },
+    {
+      "id": 2,
+      "enunciado": "Exiba os nomes de todos os países cadastrados.",
+      "resposta_base": "SELECT country_name FROM countries;"
+    },
+    {
+      "id": 3,
+      "enunciado": "Liste os funcionários ordenados por salário em ordem crescente.",
+      "resposta_base": "SELECT * FROM employees ORDER BY salary ASC;"
+    },
+    {
+      "id": 4,
+      "enunciado": "Encontre os dados do funcionário com o ID 101.",
+      "resposta_base": "SELECT * FROM employees WHERE employee_id = 101;"
+    },
+    {
+      "id": 5,
+      "enunciado": "Liste os funcionários que ganham mais de 5000 e trabalham no departamento 10.",
+      "resposta_base": "SELECT * FROM employees WHERE salary > 5000 AND department_id = 10;"
+    },
+    {
+      "id": 6,
+      "enunciado": "Mostre os nomes dos países e utilize o alias \"País\" para a coluna.",
+      "resposta_base": "SELECT country_name AS \"País\" FROM countries;"
+    },
+    {
+      "id": 7,
+      "enunciado": "Liste os departamentos com os IDs 10, 20 e 30.",
+      "resposta_base": "SELECT * FROM departments WHERE department_id IN (10, 20, 30);"
+    },
+    {
+      "id": 8,
+      "enunciado": "Liste os funcionários que ganham entre 3000 e 8000.",
+      "resposta_base": "SELECT * FROM employees WHERE salary BETWEEN 3000 AND 8000;"
+    },
+    {
+      "id": 9,
+      "enunciado": "Exiba os 5 primeiros funcionários cadastrados.",
+      "resposta_base": "SELECT * FROM employees LIMIT 5;"
+    },
+    {
+      "id": 10,
+      "enunciado": "Liste os funcionários cujo nome começa com \"A\".",
+      "resposta_base": "SELECT * FROM employees WHERE first_name LIKE 'A%';"
+    },
+    {
+      "id": 11,
+      "enunciado": "Liste os funcionários que trabalham no departamento 30 ou 50.",
+      "resposta_base": "SELECT * FROM employees WHERE department_id = 30 OR department_id = 50;"
+    },
+    {
+      "id": 12,
+      "enunciado": "Liste os países cujo nome termina com \"a\".",
+      "resposta_base": "SELECT * FROM countries WHERE country_name LIKE '%a';"
+    },
+    {
+      "id": 13,
+      "enunciado": "Exiba o número total de funcionários cadastrados.",
+      "resposta_base": "SELECT COUNT(*) FROM employees;"
+    },
+    {
+      "id": 14,
+      "enunciado": "Exiba o número total de funcionários que ganham mais de 3000.",
+      "resposta_base": "SELECT COUNT(*) FROM employees WHERE salary > 3000;"
+    },
+    {
+      "id": 15,
+      "enunciado": "Liste os cargos ordenados por salário máximo em ordem decrescente.",
+      "resposta_base": "SELECT * FROM jobs ORDER BY max_salary DESC;"
+    },
+    {
+      "id": 16,
+      "enunciado": "Exiba o número de funcionários por departamento.",
+      "resposta_base": "SELECT department_id, COUNT(*) FROM employees GROUP BY department_id;"
+    },
+    {
+      "id": 17,
+      "enunciado": "Liste os departamentos que têm mais de 5 funcionários.",
+      "resposta_base": "SELECT department_id, COUNT(*) FROM employees GROUP BY department_id HAVING COUNT(*) > 5;"
+    },
+    {
+      "id": 18,
+      "enunciado": "Liste o ID e o nome dos funcionários, usando alias \"ID\" e \"Nome\".",
+      "resposta_base": "SELECT employee_id AS \"ID\", first_name AS \"Nome\" FROM employees;"
+    },
+    {
+      "id": 19,
+      "enunciado": "Exiba os funcionários cujos salários estejam entre 4000 e 9000.",
+      "resposta_base": "SELECT * FROM employees WHERE salary BETWEEN 4000 AND 9000;"
+    },
+    {
+      "id": 20,
+      "enunciado": "Liste os nomes dos funcionários e os nomes de seus departamentos.",
+      "resposta_base": "SELECT e.first_name, d.department_name FROM employees e JOIN departments d ON e.department_id = d.department_id;"
+    },
+    {
+      "id": 21,
+      "enunciado": "Exiba o nome dos funcionários cujo salário é maior que a média salarial de todos os funcionários.",
+      "resposta_base": "SELECT first_name FROM employees WHERE salary > (SELECT AVG(salary) FROM employees);"
+    },
+    {
+      "id": 22,
+      "enunciado": "Mostre o menor e o maior salário registrados na tabela de funcionários.",
+      "resposta_base": "SELECT MIN(salary) AS menor_salario, MAX(salary) AS maior_salario FROM employees;"
+    },
+    {
+      "id": 23,
+      "enunciado": "Liste o nome dos funcionários, o nome de seus departamentos e o nome de suas localidades.",
+      "resposta_base": "SELECT e.first_name, d.department_name, l.city FROM employees e JOIN departments d ON e.department_id = d.department_id JOIN locations l ON d.location_id = l.location_id;"
+    },
+    {
+      "id": 24,
+      "enunciado": "Liste os históricos de trabalho registrados entre 01/01/2000 e 31/12/2010.",
+      "resposta_base": "SELECT * FROM job_history WHERE start_date BETWEEN '2000-01-01' AND '2010-12-31';"
+    },
+    {
+      "id": 25,
+      "enunciado": "Conte quantos funcionários têm salários superiores a 5000.",
+      "resposta_base": "SELECT COUNT(*) FROM employees WHERE salary > 5000;"
+    },
+    {
+      "id": 26,
+      "enunciado": "Liste os IDs dos departamentos que possuem média salarial superior a 10000.",
+      "resposta_base": "SELECT department_id, AVG(salary) FROM employees GROUP BY department_id HAVING AVG(salary) > 10000;"
+    },
+    {
+      "id": 27,
+      "enunciado": "Liste os nomes dos funcionários que trabalham em departamentos localizados em \"Seattle\".",
+      "resposta_base": "SELECT e.first_name FROM employees e JOIN departments d ON e.department_id = d.department_id JOIN locations l ON d.location_id = l.location_id WHERE l.city = 'Seattle';"
+    },
+    {
+      "id": 28,
+      "enunciado": "Liste os nomes dos funcionários que ganham mais que o salário médio do departamento onde trabalham.",
+      "resposta_base": "SELECT first_name FROM employees e WHERE salary > (SELECT AVG(salary) FROM employees WHERE department_id = e.department_id);"
+    },
+    {
+      "id": 29,
+      "enunciado": "Liste todos os funcionários ordenados pelo ID do departamento em ordem crescente e, dentro de cada departamento, pelo salário em ordem decrescente.",
+      "resposta_base": "SELECT * FROM employees ORDER BY department_id ASC, salary DESC;"
+    },
+    {
+      "id": 30,
+      "enunciado": "Exiba os nomes dos funcionários e suas localizações, filtrando por departamentos cujo nome começa com \"A\".",
+      "resposta_base": "SELECT e.first_name, l.city FROM employees e JOIN departments d ON e.department_id = d.department_id JOIN locations l ON d.location_id = l.location_id WHERE d.department_name LIKE 'A%';"
+    },
+    {
+      "id": 31,
+      "enunciado": "Exiba o nome dos funcionários e uma coluna que indica \"Alto\" se o salário for maior que 8000, ou \"Baixo\" caso contrário.",
+      "resposta_base": "SELECT first_name, CASE WHEN salary > 8000 THEN 'Alto' ELSE 'Baixo' END AS classificacao_salario FROM employees;"
+    },
+    {
+      "id": 32,
+      "enunciado": "Exiba os nomes dos departamentos e o número de funcionários em cada um deles.",
+      "resposta_base": "SELECT d.department_name, (SELECT COUNT(*) FROM employees e WHERE e.department_id = d.department_id) AS total_funcionarios FROM departments d;"
+    },
+    {
+      "id": 33,
+      "enunciado": "Liste os nomes dos funcionários, seus cargos e o departamento onde trabalham, filtrando apenas os funcionários cujo salário é maior que 6000.",
+      "resposta_base": "SELECT e.first_name, j.job_title, d.department_name FROM employees e JOIN jobs j ON e.job_id = j.job_id JOIN departments d ON e.department_id = d.department_id WHERE e.salary > 6000;"
+    },
+    {
+      "id": 34,
+      "enunciado": "Liste os nomes dos funcionários com um número de linha para cada um, ordenado por salário decrescente.",
+      "resposta_base": "SELECT first_name, ROW_NUMBER() OVER (ORDER BY salary DESC) AS numero_linha FROM employees;"
+    },
+    {
+      "id": 35,
+      "enunciado": "Liste os nomes dos departamentos que possuem pelo menos um funcionário com salário superior a 10000.",
+      "resposta_base": "SELECT DISTINCT d.department_name FROM departments d WHERE EXISTS (SELECT 1 FROM employees e WHERE e.department_id = d.department_id AND e.salary > 10000);"
+    },
+    {
+      "id": 36,
+      "enunciado": "Liste os nomes dos funcionários que trabalham nos departamentos localizados na cidade de \"New York\".",
+      "resposta_base": "SELECT e.first_name FROM employees e WHERE e.department_id IN (SELECT d.department_id FROM departments d JOIN locations l ON d.location_id = l.location_id WHERE l.city = 'New York');"
+    },
+    {
+      "id": 37,
+      "enunciado": "Para cada departamento, exiba o número total de funcionários e a soma dos salários.",
+      "resposta_base": "SELECT department_id, COUNT(*) AS total_funcionarios, SUM(salary) AS soma_salarios FROM employees GROUP BY department_id;"
+    },
+    {
+      "id": 38,
+      "enunciado": "Liste os nomes dos funcionários cujo nome do departamento contém \"Sales\".",
+      "resposta_base": "SELECT e.first_name FROM employees e JOIN departments d ON e.department_id = d.department_id WHERE d.department_name LIKE '%Sales%';"
+    },
+    {
+      "id": 39,
+      "enunciado": "Liste os nomes dos funcionários, seus salários e a soma dos salários de seus departamentos.",
+      "resposta_base": "SELECT e.first_name, e.salary, SUM(e.salary) OVER (PARTITION BY e.department_id) AS soma_departamento FROM employees e;"
+    },
+    {
+      "id": 40,
+      "enunciado": "Liste os nomes dos funcionários, os cargos e as cidades onde trabalham, para funcionários cujo cargo termina com \"Manager\".",
+      "resposta_base": "SELECT e.first_name, j.job_title, l.city FROM employees e JOIN jobs j ON e.job_id = j.job_id JOIN departments d ON e.department_id = d.department_id JOIN locations l ON d.location_id = l.location_id WHERE j.job_title LIKE '%Manager';"
+    },
+    {
+      "id": 41,
+      "enunciado": "Exiba os nomes dos funcionários cujo salário é o maior dentro do departamento onde trabalham.",
+      "resposta_base": "SELECT first_name FROM employees e1 WHERE salary = (SELECT MAX(salary) FROM employees e2 WHERE e2.department_id = e1.department_id);"
+    },
+    {
+      "id": 42,
+      "enunciado": "Liste os departamentos que possuem mais de 3 funcionários.",
+      "resposta_base": "SELECT d.department_name, COUNT(e.employee_id) AS total_funcionarios FROM departments d JOIN employees e ON d.department_id = e.department_id GROUP BY d.department_name HAVING COUNT(e.employee_id) > 3;"
+    },
+    {
+      "id": 43,
+      "enunciado": "Liste os funcionários que começaram a trabalhar após o ano de 2010.",
+      "resposta_base": "SELECT first_name FROM employees WHERE hire_date > '2010-01-01';"
+    },
+    {
+      "id": 44,
+      "enunciado": "Liste os nomes dos funcionários com seus salários e sua classificação dentro do departamento.",
+      "resposta_base": "SELECT first_name, salary, RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS classificacao FROM employees;"
+    },
+    {
+      "id": 45,
+      "enunciado": "Liste os nomes dos funcionários que já tiveram histórico de trabalho registrado.",
+      "resposta_base": "SELECT e.first_name FROM employees e WHERE EXISTS (SELECT 1 FROM job_history j WHERE j.employee_id = e.employee_id);"
+    },
+    {
+      "id": 46,
+      "enunciado": "Exiba os nomes dos funcionários e suas cidades, filtrando apenas os que trabalham em departamentos cujo ID seja maior que 50.",
+      "resposta_base": "SELECT e.first_name, l.city FROM employees e JOIN departments d ON e.department_id = d.department_id JOIN locations l ON d.location_id = l.location_id WHERE d.department_id > 50;"
+    },
+    {
+      "id": 47,
+      "enunciado": "Liste os nomes de todos os países e cidades registrados no sistema.",
+      "resposta_base": "SELECT country_name AS nome FROM countries UNION SELECT city AS nome FROM locations;"
+    },
+    {
+      "id": 48,
+      "enunciado": "Para cada localização, exiba o número total de departamentos e o número total de funcionários.",
+      "resposta_base": "SELECT l.city, COUNT(DISTINCT d.department_id) AS total_departamentos, COUNT(e.employee_id) AS total_funcionarios FROM locations l JOIN departments d ON l.location_id = d.location_id JOIN employees e ON d.department_id = e.department_id GROUP BY l.city;"
+    },
+    {
+      "id": 49,
+      "enunciado": "Exiba o nome dos funcionários e a média salarial do departamento onde trabalham.",
+      "resposta_base": "SELECT e.first_name, (SELECT AVG(salary) FROM employees e2 WHERE e2.department_id = e.department_id) AS media_salarial_departamento FROM employees e;"
+    },
+    {
+      "id": 50,
+      "enunciado": "Liste os nomes dos funcionários, seus salários e sua classificação densidade dentro do departamento.",
+      "resposta_base": "SELECT first_name, salary, DENSE_RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS classificacao_densidade FROM employees;"
+    },
+{
+    "id": 51,
+    "enunciado": "Exiba os nomes dos funcionários que trabalham no departamento com o maior número de funcionários.",
+    "resposta_base": "SELECT first_name FROM employees WHERE department_id = (SELECT department_id FROM employees GROUP BY department_id ORDER BY COUNT(*) DESC LIMIT 1);"
+    },
+    {
+    "id": 52,
+    "enunciado": "Liste os nomes dos funcionários e o nome do departamento onde trabalham.",
+    "resposta_base": "SELECT e.first_name, d.department_name FROM employees e JOIN departments d ON e.department_id = d.department_id;"
+    },
+    {
+    "id": 53,
+    "enunciado": "Exiba os IDs dos departamentos ordenados pela soma dos salários em ordem decrescente.",
+    "resposta_base": "SELECT department_id FROM employees GROUP BY department_id ORDER BY SUM(salary) DESC;"
+    },
+    {
+    "id": 54,
+    "enunciado": "Liste os nomes dos funcionários que não possuem histórico de trabalho registrado.",
+    "resposta_base": "SELECT first_name FROM employees WHERE employee_id NOT IN (SELECT employee_id FROM job_history);"
+    },
+    {
+    "id": 55,
+    "enunciado": "Liste os nomes dos funcionários e os departamentos onde trabalham, considerando apenas os departamentos cujo nome contém \"Tech\".",
+    "resposta_base": "SELECT e.first_name, d.department_name FROM employees e JOIN departments d ON e.department_id = d.department_id WHERE d.department_name LIKE '%Tech%';"
+    },
+    {
+    "id": 56,
+    "enunciado": "Exiba os nomes dos funcionários e o número de departamentos diferentes em que já trabalharam.",
+    "resposta_base": "SELECT e.first_name, (SELECT COUNT(DISTINCT department_id) FROM job_history j WHERE j.employee_id = e.employee_id) AS num_departamentos FROM employees e;"
+    },
+    {
+    "id": 57,
+    "enunciado": "Liste os funcionários que começaram a trabalhar entre 01/01/2005 e 31/12/2015.",
+    "resposta_base": "SELECT first_name FROM employees WHERE hire_date BETWEEN '2005-01-01' AND '2015-12-31';"
+    },
+    {
+    "id": 58,
+    "enunciado": "Exiba o número total de funcionários por cidade.",
+    "resposta_base": "SELECT l.city, COUNT(e.employee_id) AS total_funcionarios FROM locations l JOIN departments d ON l.location_id = d.location_id JOIN employees e ON d.department_id = e.department_id GROUP BY l.city;"
+    },
+    {
+    "id": 59,
+    "enunciado": "Exiba os IDs dos departamentos onde a soma dos salários ultrapassa 20000.",
+    "resposta_base": "SELECT department_id FROM employees GROUP BY department_id HAVING SUM(salary) > 20000;"
+    },
+    {
+    "id": 60,
+    "enunciado": "Liste os nomes dos funcionários e a soma cumulativa de seus salários por departamento.",
+    "resposta_base": "SELECT e.first_name, SUM(e.salary) OVER (PARTITION BY e.department_id ORDER BY e.salary) AS soma_cumulativa FROM employees e;"
+    },
+    {
+    "id": 61,
+    "enunciado": "Liste os nomes dos funcionários que ganham mais de 5000 e trabalham em departamentos localizados em \"London\".",
+    "resposta_base": "SELECT e.first_name FROM employees e JOIN departments d ON e.department_id = d.department_id JOIN locations l ON d.location_id = l.location_id WHERE e.salary > 5000 AND l.city = 'London';"
+    },
+    {
+    "id": 62,
+    "enunciado": "Exiba os nomes dos funcionários cujo salário é maior que a soma de todos os salários de seus departamentos.",
+    "resposta_base": "SELECT first_name FROM employees e WHERE salary > (SELECT SUM(salary) FROM employees WHERE department_id = e.department_id);"
+    },
+    {
+    "id": 63,
+    "enunciado": "Liste os departamentos que possuem menos de 5 funcionários.",
+    "resposta_base": "SELECT d.department_name, COUNT(e.employee_id) AS total_funcionarios FROM departments d JOIN employees e ON d.department_id = e.department_id GROUP BY d.department_name HAVING COUNT(e.employee_id) < 5;"
+    },
+    {
+    "id": 64,
+    "enunciado": "Liste os nomes dos funcionários ordenados primeiro pela cidade do departamento em ordem alfabética e, dentro de cada cidade, pelo salário em ordem decrescente.",
+    "resposta_base": "SELECT e.first_name, l.city, e.salary FROM employees e JOIN departments d ON e.department_id = d.department_id JOIN locations l ON d.location_id = l.location_id ORDER BY l.city ASC, e.salary DESC;"
+    },
+    {
+    "id": 65,
+    "enunciado": "Exiba os nomes dos funcionários cujo salário é maior que o maior salário do departamento 50.",
+    "resposta_base": "SELECT first_name FROM employees e WHERE salary > (SELECT MAX(salary) FROM employees WHERE department_id = 50);"
+    },
+    {
+    "id": 66,
+    "enunciado": "Liste os nomes dos funcionários, seus salários e a média acumulativa de seus salários dentro de seus departamentos.",
+    "resposta_base": "SELECT first_name, salary, AVG(salary) OVER (PARTITION BY department_id ORDER BY salary) AS media_acumulativa FROM employees;"
+    },
+    {
+    "id": 67,
+    "enunciado": "Exiba a soma dos salários de funcionários agrupados por cidade e por departamento.",
+    "resposta_base": "SELECT l.city, d.department_name, SUM(e.salary) AS soma_salarios FROM locations l JOIN departments d ON l.location_id = d.location_id JOIN employees e ON d.department_id = e.department_id GROUP BY l.city, d.department_name;"
+    },
+    {
+    "id": 68,
+    "enunciado": "Exiba os nomes dos funcionários e seus bônus. Caso o bônus seja nulo, exiba \"Sem bônus\".",
+    "resposta_base": "SELECT first_name, COALESCE(commission_pct, 'Sem bônus') AS bonus FROM employees;"
+    },
+    {
+    "id": 69,
+    "enunciado": "Exiba os nomes das cidades onde há pelo menos um funcionário trabalhando.",
+    "resposta_base": "SELECT DISTINCT l.city FROM locations l JOIN departments d ON l.location_id = d.location_id JOIN employees e ON d.department_id = e.department_id;"
+    },
+    {
+    "id": 70,
+    "enunciado": "Liste os nomes dos funcionários, seus cargos e os nomes dos países onde trabalham, considerando apenas países que começam com \"U\".",
+    "resposta_base": "SELECT e.first_name, j.job_title, c.country_name FROM employees e JOIN departments d ON e.department_id = d.department_id JOIN locations l ON d.location_id = l.location_id JOIN countries c ON l.country_id = c.country_id WHERE c.country_name LIKE 'U%';"
+    },
+    {
+    "id": 71,
+    "enunciado": "Exiba os nomes dos funcionários e a soma dos salários de todos os departamentos onde já trabalharam.",
+    "resposta_base": "SELECT e.first_name, (SELECT SUM(salary) FROM employees e2 WHERE e2.department_id IN (SELECT department_id FROM job_history j WHERE j.employee_id = e.employee_id)) AS soma_salarios_departamentos FROM employees e;"
+    },
+    {
+    "id": 72,
+    "enunciado": "Liste os nomes dos funcionários e o histórico de trabalho registrado entre 2015 e 2020.",
+    "resposta_base": "SELECT e.first_name, j.start_date, j.end_date FROM employees e JOIN job_history j ON e.employee_id = j.employee_id WHERE j.start_date >= '2015-01-01' AND j.end_date <= '2020-12-31';"
+    },
+    {
+    "id": 73,
+    "enunciado": "Exiba os nomes dos departamentos que possuem funcionários ganhando mais de 8000.",
+    "resposta_base": "SELECT DISTINCT d.department_name FROM departments d WHERE EXISTS (SELECT 1 FROM employees e WHERE e.department_id = d.department_id AND e.salary > 8000);"
+    },
+    {
+    "id": 74,
+    "enunciado": "Liste os IDs dos departamentos onde mais de 10 funcionários trabalham atualmente.",
+    "resposta_base": "SELECT department_id, COUNT(*) AS total_funcionarios FROM employees GROUP BY department_id HAVING COUNT(*) > 10;"
+    },
+    {
+    "id": 75,
+    "enunciado": "Exiba os nomes dos funcionários e a diferença entre o salário atual e o salário máximo permitido para seus cargos.",
+    "resposta_base": "SELECT e.first_name, (j.max_salary - e.salary) AS diferenca_salarial FROM employees e JOIN jobs j ON e.job_id = j.job_id;"
+    },
+    {
+    "id": 76,
+    "enunciado": "Liste os funcionários ordenados pela diferença entre seus salários e a média salarial do departamento.",
+    "resposta_base": "SELECT e.first_name, (e.salary - (SELECT AVG(salary) FROM employees e2 WHERE e2.department_id = e.department_id)) AS diferenca_media FROM employees e ORDER BY diferenca_media DESC;"
+    },
+    {
+    "id": 77,
+    "enunciado": "Liste os nomes dos funcionários que já tiveram mais de um histórico de trabalho registrado.",
+    "resposta_base": "SELECT e.first_name FROM employees e WHERE EXISTS (SELECT 1 FROM job_history j WHERE j.employee_id = e.employee_id GROUP BY j.employee_id HAVING COUNT(*) > 1);"
+    },
+    {
+    "id": 78,
+    "enunciado": "Exiba os nomes dos departamentos e a média de salários, mas apenas para os departamentos com funcionários atualmente empregados.",
+    "resposta_base": "SELECT d.department_name, (SELECT AVG(salary) FROM employees e WHERE e.department_id = d.department_id) AS media_salarial FROM departments d WHERE EXISTS (SELECT 1 FROM employees e WHERE e.department_id = d.department_id);"
+    },
+    {
+    "id": 79,
+    "enunciado": "Liste os nomes dos funcionários que começaram a trabalhar em 2020 e cujo nome começa com \"J\".",
+    "resposta_base": "SELECT first_name FROM employees WHERE hire_date BETWEEN '2020-01-01' AND '2020-12-31' AND first_name LIKE 'J%';"
+    },
+    {
+    "id": 80,
+    "enunciado": "Liste os nomes das cidades e países registrados no banco de dados.",
+    "resposta_base": "SELECT l.city AS nome FROM locations l UNION SELECT c.country_name AS nome FROM countries c;"
+    },
+    {
+    "id": 81,
+    "enunciado": "Liste os nomes dos funcionários que trabalham em departamentos onde a soma dos salários ultrapassa 50.000.",
+    "resposta_base": "SELECT e.first_name FROM employees e JOIN departments d ON e.department_id = d.department_id WHERE e.department_id IN (SELECT department_id FROM employees GROUP BY department_id HAVING SUM(salary) > 50000);"
+    },
+    {
+    "id": 82,
+    "enunciado": "Exiba os nomes dos funcionários cujo salário é maior que qualquer salário do departamento 10.",
+    "resposta_base": "SELECT first_name FROM employees WHERE salary > ANY (SELECT salary FROM employees WHERE department_id = 10);"
+    },
+    {
+    "id": 83,
+    "enunciado": "Liste os departamentos que possuem mais de 5 funcionários e média salarial superior a 8000.",
+    "resposta_base": "SELECT department_id, AVG(salary) AS media_salarial, COUNT(*) AS total_funcionarios FROM employees GROUP BY department_id HAVING COUNT(*) > 5 AND AVG(salary) > 8000;"
+    },
+    {
+    "id": 84,
+    "enunciado": "Exiba os nomes dos funcionários, os salários e a porcentagem do salário em relação ao salário máximo do cargo.",
+    "resposta_base": "SELECT e.first_name, e.salary, (e.salary * 100.0 / j.max_salary) AS percentual_salario FROM employees e JOIN jobs j ON e.job_id = j.job_id ORDER BY percentual_salario DESC;"
+    },
+    {
+    "id": 85,
+    "enunciado": "Liste os nomes dos funcionários que nunca trabalharam no departamento 50.",
+    "resposta_base": "SELECT first_name FROM employees e WHERE NOT EXISTS (SELECT 1 FROM job_history j WHERE j.employee_id = e.employee_id AND j.department_id = 50);"
+    },
+    {
+    "id": 86,
+    "enunciado": "Exiba os nomes dos funcionários e a quantidade de anos que trabalharam, considerando histórico de trabalho.",
+    "resposta_base": "SELECT e.first_name, (SELECT SUM(EXTRACT(YEAR FROM j.end_date) - EXTRACT(YEAR FROM j.start_date)) FROM job_history j WHERE j.employee_id = e.employee_id) AS anos_trabalhados FROM employees e;"
+    },
+    {
+    "id": 87,
+    "enunciado": "Liste os nomes dos funcionários e a soma cumulativa dos salários dentro de cada departamento.",
+    "resposta_base": "SELECT e.first_name, SUM(e.salary) OVER (PARTITION BY e.department_id ORDER BY e.salary) AS soma_cumulativa FROM employees e;"
+    },
+    {
+    "id": 88,
+    "enunciado": "Exiba os nomes dos funcionários que trabalham no departamento com o maior número de funcionários.",
+    "resposta_base": "SELECT first_name FROM employees WHERE department_id = (SELECT department_id FROM employees GROUP BY department_id ORDER BY COUNT(*) DESC LIMIT 1);"
+    },
+    {
+    "id": 89,
+    "enunciado": "Liste as cidades onde há mais de 10 funcionários trabalhando atualmente.",
+    "resposta_base": "SELECT l.city, COUNT(e.employee_id) AS total_funcionarios FROM locations l JOIN departments d ON l.location_id = d.location_id JOIN employees e ON d.department_id = e.department_id GROUP BY l.city HAVING COUNT(e.employee_id) > 10;"
+    },
+    {
+    "id": 90,
+    "enunciado": "Exiba os nomes dos funcionários cujo salário é maior que a média salarial de todos os funcionários em departamentos diferentes do deles.",
+    "resposta_base": "SELECT e.first_name FROM employees e WHERE salary > (SELECT AVG(salary) FROM employees e2 WHERE e2.department_id <> e.department_id);"
+    },
+    {
+    "id": 91,
+    "enunciado": "Liste os nomes dos funcionários, os salários e sua posição relativa de salário dentro de seus departamentos.",
+    "resposta_base": "SELECT e.first_name, e.salary, RANK() OVER (PARTITION BY e.department_id ORDER BY e.salary DESC) AS posicao FROM employees e;"
+    },
+    {
+    "id": 92,
+    "enunciado": "Exiba os nomes dos funcionários cujo salário é maior que a soma dos salários de todos os funcionários em departamentos com menos de 5 funcionários.",
+    "resposta_base": "SELECT first_name FROM employees e WHERE salary > (SELECT SUM(salary) FROM employees e2 WHERE e2.department_id <> e.department_id GROUP BY e2.department_id HAVING COUNT(e2.employee_id) < 5);"
+    },
+    {
+    "id": 93,
+    "enunciado": "Liste os departamentos com soma salarial maior que 100000 e média salarial inferior a 20000.",
+    "resposta_base": "SELECT department_id, SUM(salary) AS soma_salarial, AVG(salary) AS media_salarial FROM employees GROUP BY department_id HAVING SUM(salary) > 100000 AND AVG(salary) < 20000;"
+    },
+    {
+    "id": 94,
+    "enunciado": "Exiba os nomes dos funcionários e o total de cargos diferentes que já ocuparam em seu histórico de trabalho.",
+    "resposta_base": "SELECT e.first_name, (SELECT COUNT(DISTINCT job_id) FROM job_history j WHERE j.employee_id = e.employee_id) AS total_cargos FROM employees e;"
+    },
+    {
+    "id": 95,
+    "enunciado": "Liste os nomes dos funcionários e o nome de suas localidades, considerando apenas os funcionários que trabalham em departamentos com mais de 10 funcionários.",
+    "resposta_base": "SELECT e.first_name, l.city FROM employees e JOIN departments d ON e.department_id = d.department_id JOIN locations l ON d.location_id = l.location_id WHERE d.department_id IN (SELECT department_id FROM employees GROUP BY department_id HAVING COUNT(employee_id) > 10);"
+    },
+    {
+    "id": 96,
+    "enunciado": "Liste os nomes dos funcionários que foram contratados no mesmo ano que a média de contratação de todos os funcionários.",
+    "resposta_base": "SELECT first_name FROM employees WHERE EXTRACT(YEAR FROM hire_date) = (SELECT ROUND(AVG(EXTRACT(YEAR FROM hire_date))) FROM employees);"
+    },
+    {
+    "id": 97,
+    "enunciado": "Exiba os nomes dos funcionários e a diferença entre seus salários e o maior salário do departamento.",
+    "resposta_base": "SELECT e.first_name, (e.salary - MAX(e.salary) OVER (PARTITION BY e.department_id)) AS diferenca_maior_salario FROM employees e;"
+    },
+    {
+    "id": 98,
+    "enunciado": "Liste os países e a quantidade de departamentos registrados em cada um.",
+    "resposta_base": "SELECT c.country_name, COUNT(d.department_id) AS total_departamentos FROM countries c JOIN locations l ON c.country_id = l.country_id JOIN departments d ON l.location_id = d.location_id GROUP BY c.country_name;"
+    },
+    {
+    "id": 99,
+    "enunciado": "Exiba os nomes dos funcionários que começaram a trabalhar após o término do último histórico de trabalho de outros funcionários.",
+    "resposta_base": "SELECT e.first_name FROM employees e WHERE EXISTS (SELECT 1 FROM job_history j WHERE j.end_date < e.hire_date);"
+    },
+    {
+    "id": 100,
+    "enunciado": "Liste os nomes das cidades e a soma total de funcionários registrados nelas, incluindo departamentos com ou sem funcionários.",
+    "resposta_base": "SELECT l.city, COALESCE(SUM(e.employee_id), 0) AS total_funcionarios FROM locations l LEFT JOIN departments d ON l.location_id = d.location_id LEFT JOIN employees e ON d.department_id = e.department_id GROUP BY l.city UNION SELECT 'Outros Locais', COUNT(*) FROM employees WHERE department_id IS NULL;"
+    }
+]
