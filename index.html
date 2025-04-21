@@ -5,21 +5,22 @@
 </head>
 <body>
   <h1>Validação de Query</h1>
-  <textarea id="query" rows="5" cols="60" placeholder="Digite sua SQL aqui..."></textarea><br>
+  <textarea id="query" rows="5" cols="60" placeholder="select 1"></textarea><br>
   <button onclick="enviar()">Enviar</button>
   <pre id="resultado"></pre>
 
   <script>
     async function enviar() {
-      const query = document.getElementById("query").value;
-      const res = await fetch("https://seu-backend.onrender.com/validar", {
+    const query = document.getElementById("query").value;
+    const res = await fetch("https://sql-trail.onrender.com/validar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query })
-      });
-      const data = await res.json();
-      document.getElementById("resultado").innerText = JSON.stringify(data, null, 2);
+    });
+    const data = await res.json();
+    document.getElementById("resultado").innerText = JSON.stringify(data, null, 2);
     }
+
   </script>
 </body>
 </html>
