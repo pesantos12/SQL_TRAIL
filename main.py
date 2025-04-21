@@ -108,7 +108,12 @@ async def validar_query(request: Request):
         # retorna um JSON com status 200 e erro, CORS será aplicado
         return JSONResponse(
             status_code=200,
-            content={"valido": False, "erro": str(e)}
+            content={"valido": False, "erro": str(e)},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "*",
+                "Access-Control-Allow-Headers": "*",
+            }
         )
 
     # Prepara estrutura de resultados para retornar (convertendo valores para tipos JSON serializáveis)
