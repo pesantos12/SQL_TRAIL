@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import psycopg2
 import os
 import json
@@ -56,6 +57,7 @@ def obter_questao():
 
 @app.post("/validar")
 async def validar_query(request: Request):
+    global conn
     """Valida a consulta SQL enviada pelo usuário, comparando com a resposta esperada da questão."""
     data = await request.json()
     user_query = data.get("query")
@@ -85,30 +87,29 @@ async def validar_query(request: Request):
     # Query SQL esperada (resposta base) da questão
     expected_query = questao["resposta_base"]
 
+
     try:
         cur = conn.cursor()
-        # Executa a query do usuário
         cur.execute(user_query)
-        user_rows = None
-        user_columns = None
-        if cur.description:
-            user_rows = cur.fetchall()
-            user_columns = [desc[0] for desc in cur.description]
-        # Executa a query esperada
+        user_rows = cur.fetchall() if cur.description else []
+        user_cols = [d[0] for d in cur.description] if cur.description else []
+
         cur.execute(expected_query)
-        expected_rows = None
-        expected_columns = None
-        if cur.description:
-            expected_rows = cur.fetchall()
-            expected_columns = [desc[0] for desc in cur.description]
+        expected_rows = cur.fetchall() if cur.description else []
+        expected_cols = [d[0] for d in cur.description] if cur.description else []
+
     except psycopg2.Error as e:
-        # Em caso de erro na execução da query do usuário, reinicia conexão e retorna erro
+        # tente refazer a conexão globalmente
         try:
             conn.close()
         except:
             pass
         conn = psycopg2.connect(**DB_CONFIG)
-        return {"valido": False, "erro": str(e)}
+        # retorna um JSON com status 200 e erro, CORS será aplicado
+        return JSONResponse(
+            status_code=200,
+            content={"valido": False, "erro": str(e)}
+        )
 
     # Prepara estrutura de resultados para retornar (convertendo valores para tipos JSON serializáveis)
     def format_value(val):
