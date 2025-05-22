@@ -1,4 +1,6 @@
-fastapi
-uvicorn
+Flask
+psycopg2-binary
 python-dotenv
-psycopg2
+requests
+sql_metadata
+sqlglot

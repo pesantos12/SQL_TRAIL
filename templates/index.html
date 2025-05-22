@@ -1,0 +1,156 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL Trail</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+
+  <!-- CodeMirror CSS -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css"/>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/eclipse.min.css"/>
+
+  <!-- CodeMirror JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/sql/sql.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>SQL Trail</h1>
+    <button id="btnToggleErd">Ver Mapa Conceitual</button>
+  </header>
+
+  <main>
+    <!-- Seção da questão -->
+    <section class="question">
+      <div class="enunciado" id="enunciado">
+        Clique em "Nova Questão" para carregar um enunciado...
+      </div>
+      <div class="controls">
+        <button id="btnNext">Nova Questão</button>
+      </div>
+    </section>
+
+    <!-- Editor de SQL com CodeMirror -->
+    <section class="editor">
+      <div id="editor" class="editor-container"></div>
+      <button id="btnValidate">Validar Consulta</button>
+      <div class="message" id="message"></div>
+    </section>
+
+    <!-- Resultados lado a lado -->
+    <section class="results">
+      <div class="result-box">
+        <h2>Resultado do Aluno</h2>
+        <div class="table-container" id="resultAluno"></div>
+        <div class="footer" id="footerAluno"></div>
+      </div>
+      <div class="result-box">
+        <h2>Resultado Esperado</h2>
+        <div class="table-container" id="resultBase"></div>
+        <div class="footer" id="footerBase"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Mapa Conceitual (ERD) -->
+  <div id="erdModal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Mapa Conceitual</h2>
+      <img src="{{ url_for('static', filename='modelo.png') }}" alt="Mapa Conceitual" />
+    </div>
+  </div>
+
+  <script>
+    // Inicializa CodeMirror no div#editor
+    const editor = CodeMirror(document.getElementById('editor'), {
+      mode: 'text/x-sql',
+      theme: 'eclipse',
+      lineNumbers: true,
+      indentWithTabs: true,
+      smartIndent: true,
+      matchBrackets: true,
+      autofocus: true
+    });
+
+    // Toggle do modal ERD
+    const modal = document.getElementById('erdModal');
+    document.getElementById('btnToggleErd').onclick = () => {
+      modal.classList.toggle('hidden');
+    };
+    document.querySelector('.modal .close').onclick = () => {
+      modal.classList.add('hidden');
+    };
+
+    // Carrega uma nova questão
+    async function carregarQuestao() {
+      document.getElementById('message').textContent = '';
+      const res = await fetch('/question');
+      const { enunciado } = await res.json();
+      document.getElementById('enunciado').textContent = enunciado;
+      editor.setValue('');                    // limpa o CodeMirror
+      document.getElementById('resultAluno').innerHTML = '';
+      document.getElementById('resultBase').innerHTML = '';
+      document.getElementById('footerAluno').textContent = '';
+      document.getElementById('footerBase').textContent = '';
+    }
+
+    // Valida consulta
+    async function validarConsulta() {
+      const msgEl = document.getElementById('message');
+      msgEl.textContent = 'Validando...';
+
+      const payload = { student_sql: editor.getValue() };
+      const res = await fetch('/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      let json;
+      try {
+        json = await res.json();
+      } catch {
+        msgEl.textContent = `Erro desconhecido (${res.status})`;
+        return;
+      }
+
+      msgEl.textContent = json.message || json.error || `Status ${res.status}`;
+
+      if (json.result_table) {
+        document.getElementById('resultAluno').innerHTML = renderTable(json.result_table);
+        document.getElementById('footerAluno').textContent =
+          `Mostrando ${json.result_table.rows.length} de ${json.result_table.total_rows} linhas`;
+      }
+      if (json.expected_table) {
+        document.getElementById('resultBase').innerHTML = renderTable(json.expected_table);
+        document.getElementById('footerBase').textContent =
+          `Mostrando ${json.expected_table.rows.length} de ${json.expected_table.total_rows} linhas`;
+      }
+    }
+
+    // Helper para gerar HTML de tabela
+    function renderTable({ columns, rows }) {
+      let html = '<table><thead><tr>';
+      for (const col of columns) html += `<th>${col}</th>`;
+      html += '</tr></thead><tbody>';
+      for (const row of rows) {
+        html += '<tr>';
+        for (const cell of row) html += `<td>${cell}</td>`;
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+      return html;
+    }
+
+    // Listeners
+    document.getElementById('btnNext').onclick = carregarQuestao;
+    document.getElementById('btnValidate').onclick = validarConsulta;
+    window.addEventListener('DOMContentLoaded', carregarQuestao);
+  </script>
+</body>
+</html>

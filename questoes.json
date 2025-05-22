@@ -1,0 +1,198 @@
+[
+  {
+    "id": 1,
+    "enunciado": "Liste todos os nomes das regiões.",
+    "resposta_base": "SELECT region_name FROM regions;"
+  },
+  {
+    "id": 2,
+    "enunciado": "Liste o ID e o nome de todos os países.",
+    "resposta_base": "SELECT country_id, country_name FROM countries;"
+  },
+  {
+    "id": 3,
+    "enunciado": "Liste o ID e a cidade de todas as localidades.",
+    "resposta_base": "SELECT location_id, city FROM locations;"
+  },
+  {
+    "id": 4,
+    "enunciado": "Liste o ID e o nome de todos os departamentos.",
+    "resposta_base": "SELECT department_id, department_name FROM departments;"
+  },
+  {
+    "id": 5,
+    "enunciado": "Liste o ID e o título de todos os cargos.",
+    "resposta_base": "SELECT job_id, job_title FROM jobs;"
+  },
+  {
+    "id": 6,
+    "enunciado": "Liste o ID, o primeiro nome e o sobrenome de todos os funcionários.",
+    "resposta_base": "SELECT employee_id, first_name, last_name FROM employees;"
+  },
+  {
+    "id": 7,
+    "enunciado": "Liste o ID do funcionário e sua data de contratação.",
+    "resposta_base": "SELECT employee_id, hire_date FROM employees;"
+  },
+  {
+    "id": 8,
+    "enunciado": "Liste o ID do funcionário e o ID do cargo de todas as entradas no histórico de cargos.",
+    "resposta_base": "SELECT employee_id, job_id FROM job_history;"
+  },
+  {
+    "id": 9,
+    "enunciado": "Liste o ID do funcionário e o nome do departamento usando a visão emp_details_view.",
+    "resposta_base": "SELECT employee_id, department_name FROM emp_details_view;"
+  },
+  {
+    "id": 10,
+    "enunciado": "Liste os nomes dos países que pertencem à região com ID 2.",
+    "resposta_base": "SELECT country_name FROM countries WHERE region_id = 2;"
+  },
+  {
+    "id": 11,
+    "enunciado": "Liste cada país e a quantidade de localidades associadas a ele, em ordem decrescente pela quantidade.",
+    "resposta_base": "SELECT c.country_id, c.country_name, COUNT(l.location_id) AS num_localidades\nFROM countries c\nJOIN locations l ON l.country_id = c.country_id\nGROUP BY c.country_id, c.country_name\nORDER BY num_localidades DESC;"
+  },
+  {
+    "id": 12,
+    "enunciado": "Para cada departamento, exiba o nome do departamento e o salário médio dos funcionários que trabalham nele.",
+    "resposta_base": "SELECT d.department_name, ROUND(AVG(e.salary)::numeric,2) AS salario_medio\nFROM departments d\nJOIN employees e ON e.department_id = d.department_id\nGROUP BY d.department_name\nORDER BY salario_medio DESC;"
+  },
+  {
+    "id": 13,
+    "enunciado": "Liste o nome completo de cada gerente e a quantidade de subordinados que ele possui, mostrando apenas gerentes com mais de 5 funcionários.",
+    "resposta_base": "SELECT CONCAT(m.first_name, ' ', m.last_name) AS nome_gerente, COUNT(e.employee_id) AS num_subordinados\nFROM employees e\nJOIN employees m ON e.manager_id = m.employee_id\nGROUP BY m.employee_id, m.first_name, m.last_name\nHAVING COUNT(e.employee_id) > 5\nORDER BY num_subordinados DESC;"
+  },
+  {
+    "id": 14,
+    "enunciado": "Encontre todos os cargos cujo salário mínimo seja maior que 10000, exibindo o ID do cargo, título e o salário mínimo.",
+    "resposta_base": "SELECT job_id, job_title, min_salary\nFROM jobs\nWHERE min_salary > 10000\nORDER BY min_salary DESC;"
+  },
+  {
+    "id": 15,
+    "enunciado": "Para cada região, liste o nome da região e a quantidade total de funcionários que trabalham em países dessa região.",
+    "resposta_base": "SELECT r.region_name, COUNT(e.employee_id) AS total_funcionarios\nFROM regions r\nJOIN countries c ON c.region_id = r.region_id\nJOIN locations l ON l.country_id = c.country_id\nJOIN departments d ON d.location_id = l.location_id\nJOIN employees e ON e.department_id = d.department_id\nGROUP BY r.region_name\nORDER BY total_funcionarios DESC;"
+  },
+  {
+    "id": 16,
+    "enunciado": "Liste o nome completo dos funcionários e a quantidade de dias desde a sua data de contratação até hoje.",
+    "resposta_base": "SELECT CONCAT(first_name, ' ', last_name) AS nome_completo,\n       (CURRENT_DATE - hire_date) AS dias_na_empresa\nFROM employees\nORDER BY dias_na_empresa DESC;"
+  },
+  {
+    "id": 17,
+    "enunciado": "Liste o nome completo dos funcionários que nunca mudaram de cargo (não possuem histórico em job_history).",
+    "resposta_base": "SELECT CONCAT(e.first_name, ' ', e.last_name) AS nome_completo\nFROM employees e\nWHERE NOT EXISTS (\n  SELECT 1 FROM job_history j\n  WHERE j.employee_id = e.employee_id\n)\nORDER BY nome_completo;"
+  },
+  {
+    "id": 18,
+    "enunciado": "Para cada cargo, exiba o título do cargo, o número de funcionários que o ocupam e a diferença entre o salário máximo e mínimo desse cargo.",
+    "resposta_base": "SELECT j.job_title,\n       COUNT(e.employee_id) AS num_empregados,\n       (j.max_salary - j.min_salary) AS faixa_salarial\nFROM jobs j\nLEFT JOIN employees e ON e.job_id = j.job_id\nGROUP BY j.job_title, j.max_salary, j.min_salary\nORDER BY faixa_salarial DESC;"
+  },
+  {
+    "id": 20,
+    "enunciado": "Para cada departamento, liste os 3 funcionários com maior salário, mostrando nome completo, departamento e salário.",
+    "resposta_base": "SELECT nome_completo, department_name, salary FROM (\n  SELECT CONCAT(e.first_name, ' ', e.last_name) AS nome_completo,\n         d.department_name,\n         e.salary,\n         ROW_NUMBER() OVER (PARTITION BY e.department_id ORDER BY e.salary DESC) AS rn\n  FROM employees e\n  JOIN departments d ON e.department_id = d.department_id\n) sub\nWHERE rn <= 3\nORDER BY department_name, salary DESC;"
+  },
+  {
+    "id": 21,
+    "enunciado": "Liste os funcionários cujo departamento seja o mesmo que o do seu gerente.",
+    "resposta_base": "SELECT e.employee_id, e.first_name, e.last_name FROM employees e JOIN employees m ON e.manager_id = m.employee_id AND e.department_id = m.department_id;"
+  },
+  {
+    "id": 22,
+    "enunciado": "Para cada mês do ano, liste o número de funcionários contratados nesse mês (independente do ano).",
+    "resposta_base": "SELECT EXTRACT(MONTH FROM hire_date) AS mes, COUNT(*) AS num_contratacoes FROM employees GROUP BY mes ORDER BY mes;"
+  },
+  {
+    "id": 23,
+    "enunciado": "Liste os departamentos que nunca tiveram funcionários nem histórico de cargos.",
+    "resposta_base": "SELECT d.department_id, d.department_name FROM departments d WHERE NOT EXISTS (SELECT 1 FROM employees e WHERE e.department_id = d.department_id) AND NOT EXISTS (SELECT 1 FROM job_history j WHERE j.department_id = d.department_id) ORDER BY d.department_id;"
+  },
+  {
+    "id": 24,
+    "enunciado": "Para cada cargo, exiba o salário médio de comissão (commission_pct) considerando apenas valores não nulos.",
+    "resposta_base": "SELECT job_id, ROUND(AVG(commission_pct)::numeric,2) AS comissao_media FROM employees WHERE commission_pct IS NOT NULL GROUP BY job_id ORDER BY job_id;"
+  },
+  {
+    "id": 25,
+    "enunciado": "Liste os funcionários cujo salário é maior que a média salarial do seu próprio departamento.",
+    "resposta_base": "SELECT e.employee_id, e.first_name, e.salary FROM employees e WHERE e.salary > (SELECT AVG(salary) FROM employees WHERE department_id = e.department_id) ORDER BY e.employee_id;"
+  },
+  {
+    "id": 26,
+    "enunciado": "Exiba o funcionário que possui a data de contratação mais antiga.",
+    "resposta_base": "SELECT employee_id, first_name, last_name, hire_date FROM employees ORDER BY hire_date ASC LIMIT 1;"
+  },
+  {
+    "id": 27,
+    "enunciado": "Liste os 3 funcionários com maior salário no banco.",
+    "resposta_base": "SELECT employee_id, first_name, last_name, salary FROM employees ORDER BY salary DESC LIMIT 3;"
+  },
+  {
+    "id": 28,
+    "enunciado": "Para cada funcionário, exiba a quantidade de dias que durou seu primeiro período no histórico de cargos.",
+    "resposta_base": "SELECT e.employee_id, CONCAT(e.first_name, ' ', e.last_name) AS nome, (j.end_date - j.start_date) AS dias_primeiro_periodo FROM employees e JOIN job_history j ON j.employee_id = e.employee_id WHERE j.start_date = (SELECT MIN(start_date) FROM job_history WHERE employee_id = e.employee_id);"
+  },
+  {
+    "id": 29,
+    "enunciado": "Liste os países que não possuem nenhuma localidade cadastrada.",
+    "resposta_base": "SELECT country_id, country_name FROM countries c WHERE NOT EXISTS (SELECT 1 FROM locations l WHERE l.country_id = c.country_id) ORDER BY country_id;"
+  },
+  {
+    "id": 30,
+    "enunciado": "Para cada departamento, mostre o número de funcionários atuais e o número de entradas em job_history desse departamento.",
+    "resposta_base": "SELECT d.department_id, d.department_name, COUNT(DISTINCT e.employee_id) AS num_funcionarios, COUNT(j.employee_id) AS num_historicos FROM departments d LEFT JOIN employees e ON e.department_id = d.department_id LEFT JOIN job_history j ON j.department_id = d.department_id GROUP BY d.department_id, d.department_name ORDER BY d.department_id;"
+  },
+  {
+    "id": 31,
+    "enunciado": "Liste cada cidade e a quantidade de departamentos localizados nela.",
+    "resposta_base": "SELECT l.city, COUNT(d.department_id) AS num_departamentos\nFROM departments d\nJOIN locations l ON d.location_id = l.location_id\nGROUP BY l.city\nORDER BY num_departamentos DESC;"
+  },
+  {
+    "id": 32,
+    "enunciado": "Liste o nome completo do funcionário e o título do cargo para funcionários cujo salário está acima da média de todos os funcionários.",
+    "resposta_base": "SELECT CONCAT(e.first_name, ' ', e.last_name) AS nome_completo, j.job_title\nFROM employees e\nJOIN jobs j ON e.job_id = j.job_id\nWHERE e.salary > (SELECT AVG(salary) FROM employees)\nORDER BY e.salary DESC;"
+  },
+  {
+    "id": 33,
+    "enunciado": "Para cada país, liste o nome do país e a quantidade de localidades com código postal preenchido.",
+    "resposta_base": "SELECT c.country_name, COUNT(l.location_id) AS num_localidades\nFROM countries c\nJOIN locations l ON l.country_id = c.country_id\nWHERE l.postal_code IS NOT NULL\nGROUP BY c.country_name\nORDER BY num_localidades DESC;"
+  },
+  {
+    "id": 34,
+    "enunciado": "Liste o nome completo dos funcionários que não recebem comissão.",
+    "resposta_base": "SELECT CONCAT(first_name, ' ', last_name) AS nome_completo\nFROM employees\nWHERE commission_pct IS NULL\nORDER BY nome_completo;"
+  },
+  {
+    "id": 35,
+    "enunciado": "Liste o nome do departamento e o nome completo do gerente responsável por ele.",
+    "resposta_base": "SELECT d.department_name, CONCAT(m.first_name, ' ', m.last_name) AS nome_gerente\nFROM departments d\nJOIN employees m ON d.manager_id = m.employee_id\nORDER BY d.department_name;"
+  },
+  {
+    "id": 36,
+    "enunciado": "Liste o nome completo do funcionário e a quantidade de departamentos diferentes em que ele já trabalhou (histórico de cargos), mostrando apenas quem trabalhou em mais de um.",
+    "resposta_base": "SELECT CONCAT(e.first_name, ' ', e.last_name) AS nome_completo, COUNT(DISTINCT j.department_id) AS num_departamentos\nFROM employees e\nJOIN job_history j ON e.employee_id = j.employee_id\nGROUP BY e.employee_id, e.first_name, e.last_name\nHAVING COUNT(DISTINCT j.department_id) > 1\nORDER BY num_departamentos DESC;"
+  },
+  {
+    "id": 37,
+    "enunciado": "Liste títulos de cargo cujo intervalo salarial (max_salary - min_salary) seja maior que 5000.",
+    "resposta_base": "SELECT job_title, (max_salary - min_salary) AS faixa_salarial\nFROM jobs\nWHERE (max_salary - min_salary) > 5000\nORDER BY faixa_salarial DESC;"
+  },
+  {
+    "id": 38,
+    "enunciado": "Liste os departamentos e a média de salário dos funcionários em cada um, exibindo 0 para departamentos sem funcionários.",
+    "resposta_base": "SELECT d.department_name, COALESCE(ROUND(AVG(e.salary)::numeric,2),0) AS salario_medio\nFROM departments d\nLEFT JOIN employees e ON e.department_id = d.department_id\nGROUP BY d.department_name\nORDER BY salario_medio DESC;"
+  },
+  {
+    "id": 39,
+    "enunciado": "Liste os 5 funcionários com a data de contratação mais antiga, mostrando nome completo e data de contratação.",
+    "resposta_base": "SELECT CONCAT(first_name, ' ', last_name) AS nome_completo, hire_date\nFROM employees\nORDER BY hire_date ASC\nLIMIT 5;"
+  },
+  {
+    "id": 40,
+    "enunciado": "Liste o nome completo de cada funcionário e a cidade em que ele trabalha, com base no departamento.",
+    "resposta_base": "SELECT CONCAT(e.first_name, ' ', e.last_name) AS nome_completo, l.city\nFROM employees e\nJOIN departments d ON e.department_id = d.department_id\nJOIN locations l ON d.location_id = l.location_id\nORDER BY nome_completo;"
+  }
+]
+

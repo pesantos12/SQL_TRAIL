@@ -1,196 +1,213 @@
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+# main.py
+from flask import Flask, render_template, request, jsonify
 import psycopg2
+from dotenv import load_dotenv
 import os
+import requests
 import json
 import random
-import datetime
-from decimal import Decimal
-from dotenv import load_dotenv
 
+# --- Carrega variáveis de ambiente ---
 load_dotenv()
-
-app = FastAPI()
-
-# CORS liberado para permitir conexão do front (GitHub Pages) durante desenvolvimento
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://pesantos12.github.io"],  # em produção, substituir pelo domínio específico do front-end
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Conexão com banco de dados (Supabase/PostgreSQL) usando variáveis de ambiente
-DB_CONFIG = {
-    "host": os.getenv("host"),
-    "port": os.getenv("port"),
-    "database": os.getenv("dbname"),
-    "user": os.getenv("user"),
-    "password": os.getenv("password")
+DB_PARAMS = {
+    'user': os.getenv('user'),
+    'password': os.getenv('password'),
+    'host': os.getenv('host'),
+    'port': os.getenv('port'),
+    'dbname': os.getenv('dbname')
 }
-conn = psycopg2.connect(**DB_CONFIG)
+GROQ_API_KEY = os.getenv('API_KEY')
+GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama3-70b-8192')
+GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
-# Carrega as questões do arquivo JSON na memória ao iniciar
-try:
-    with open('questoes.json', 'r', encoding='utf-8') as f:
-        questoes = json.load(f)
-        # Cria dicionário auxiliar para acesso rápido por ID
-        questoes_por_id = {q["id"]: q for q in questoes}
-except Exception as e:
-    print(f"Erro ao carregar 'questoes.json': {e}")
-    questoes = []
-    questoes_por_id = {}
+# --- Carrega questões ---
+with open('questoes.json', encoding='utf-8') as f:
+    lista = json.load(f)
+QUESTOES = {q['id']: q for q in lista}
+CURRENT_QUESTION_ID = None
 
-@app.get("/")
-def home():
-    return {"status": "API online"}
+# --- Inicializa Flask ---
+app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-@app.get("/questao")
-def obter_questao():
-    """Retorna uma questão aleatória (id e enunciado) do conjunto de questões."""
-    if not questoes:
-        return {"erro": "Nenhuma questão disponível."}
-    questao = random.choice(questoes)
-    return {"id": questao["id"], "enunciado": questao["enunciado"]}
+# --- Funções utilitárias ---
+def is_select(query: str) -> bool:
+    """Verifica se o comando inicia com SELECT"""
+    return query.strip().lower().startswith('select')
 
-@app.post("/validar")
-async def validar_query(request: Request):
-    global conn
-    """Valida a consulta SQL enviada pelo usuário, comparando com a resposta esperada da questão."""
-    data = await request.json()
-    user_query = data.get("query")
-    questao_id = data.get("questao_id")
-    resultado = {
-        "valido": True,
-        "correto": False,
-        "feedback": "",
-        "resultado_aluno": None,
-        "resultado_esperado": None
+
+def executador(query: str, fetch: bool = False, params: tuple = None):
+    """
+    Executa a query no banco:
+      - Se fetch=False: retorna True/False (sucesso ou erro).
+      - Se fetch=True: retorna lista de tuplas ou False em caso de erro.
+    """
+    conn = None
+    cur = None
+    try:
+        conn = psycopg2.connect(**DB_PARAMS)
+        conn.autocommit = True
+        cur = conn.cursor()
+        cur.execute(query, params or ())
+        if fetch:
+            return cur.fetchall()
+        return True
+    except Exception:
+        if conn:
+            conn.rollback()
+        return False
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+
+def get_row_count(query: str) -> int:
+    """
+    Conta o número de linhas retornadas por uma consulta ou retorna -1 em erro.
+    """
+    rows = executador(query, fetch=True)
+    return len(rows) if isinstance(rows, list) else -1
+
+
+def fetch_query_results(sql: str, max_rows: int = 20):
+    """
+    Executa a SQL e retorna um dict com:
+      - columns: lista de nomes de coluna
+      - rows: até max_rows tuplas
+      - total_rows: total de linhas
+    Retorna None em caso de erro.
+    """
+    try:
+        conn = psycopg2.connect(**DB_PARAMS)
+        cur = conn.cursor()
+        cur.execute(sql)
+        all_rows = cur.fetchall()
+        colnames = [desc[0] for desc in cur.description]
+        total = len(all_rows)
+        display = all_rows[:max_rows]
+        cur.close()
+        conn.close()
+        return {'columns': colnames, 'rows': display, 'total_rows': total}
+    except Exception:
+        return None
+
+
+def groq_validate(enunciado: str, base_sql: str, student_sql: str) -> bool:
+    """
+    Chama a API do Groq para validar equivalência semântica.
+    Retorna True se equivalentes, False caso contrário.
+    """
+    headers = {
+        'Authorization': f'Bearer {GROQ_API_KEY}',
+        'Content-Type': 'application/json'
     }
 
-    # Verifica se a questão existe
-    questao = questoes_por_id.get(questao_id)
-    if not questao:
-        return {"valido": False, "erro": "Questão inválida ou não encontrada."}
+    # Prompt de sistema enfatiza alias, concat e renomeações, e pede só True/False
+    prompt_system = """
+    Você é um avaliador de SQL de nível especialista, com profundo entendimento de semântica e requisitos de negócio. 
+    Sua tarefa é verificar se a consulta do aluno atende aos requisitos do enunciado — ou seja, se os dados retornados permitem deduzir corretamente as informações solicitadas, mesmo que:
+    - o aluno use aliases diferentes;
+    - retorne colunas separadas em vez de concatenadas (por exemplo, first_name e last_name em vez de uma coluna “nome completo”);
+    - renomeie campos ou altere a ordem das colunas;
+    - utilize operadores equivalentes ou formatações diversas.
 
-    # Permite apenas comandos SELECT na query do aluno
-    query_text = user_query.strip()
-    # Verifica todas as instruções separadas por ';'
-    for stmt in query_text.split(';'):
-        if stmt.strip() == "":
-            continue
-        if not stmt.strip().lower().startswith("select"):
-            return {"valido": False, "erro": "Apenas comandos SELECT são permitidos."}
+    Por exemplo, se o enunciado pede “nome completo”, aceite tanto uma única coluna concatenada quanto duas colunas separadas que, juntas, permitam compor o nome completo.  
 
-    # Query SQL esperada (resposta base) da questão
-    expected_query = questao["resposta_base"]
+    Responda estritamente com **True** se a consulta do aluno satisfaz os requisitos do enunciado ou **False** caso contrário, sem qualquer outra palavra, pontuação ou explicação.```
 
+    """.strip()
+
+    # Prompt do usuário com base e aluno
+    prompt_user = f"""
+    Enunciado: {enunciado}
+    Consulta base: {base_sql}
+    Consulta do aluno: {student_sql}
+    Ambas as consultas acima retornam resultados que satisfazem corretamente o enunciado?
+    Responda apenas True ou False.
+    """.strip()
+
+    payload = {
+        'model': GROQ_MODEL,
+        'messages': [
+            {'role': 'system', 'content': prompt_system},
+            {'role': 'user',   'content': prompt_user}
+        ],
+        'temperature': 0.0,
+        'max_tokens': 4
+    }
 
     try:
-        cur = conn.cursor()
-        cur.execute(user_query)
-        user_rows = cur.fetchall() if cur.description else []
-        user_cols = [d[0] for d in cur.description] if cur.description else []
+        resp = requests.post(GROQ_URL, headers=headers, json=payload, timeout=30)
+        resp.raise_for_status()
+        text = resp.json()['choices'][0]['message']['content'].strip().lower()
+        return text.startswith('true')
+    except Exception:
+        return False
 
-        cur.execute(expected_query)
-        expected_rows = cur.fetchall() if cur.description else []
-        expected_cols = [d[0] for d in cur.description] if cur.description else []
 
-    except psycopg2.Error as e:
-        # tente refazer a conexão globalmente
-        try:
-            conn.close()
-        except:
-            pass
-        conn = psycopg2.connect(**DB_CONFIG)
-        # retorna um JSON com status 200 e erro, CORS será aplicado
-        return JSONResponse(
-            status_code=200,
-            content={"valido": False, "erro": str(e)},
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "*",
-                "Access-Control-Allow-Headers": "*",
-            }
-        )
+# --- Rotas Flask ---
+@app.route('/question')
+def question():
+    global CURRENT_QUESTION_ID
+    q = random.choice(list(QUESTOES.values()))
+    CURRENT_QUESTION_ID = q['id']
+    return jsonify({'id': q['id'], 'enunciado': q['enunciado']})
 
-    # Prepara estrutura de resultados para retornar (convertendo valores para tipos JSON serializáveis)
-    def format_value(val):
-        """Converte valores para formatos seguros para JSON."""
-        if val is None:
-            return None
-        if isinstance(val, (datetime.date, datetime.datetime)):
-            return val.isoformat()
-        if isinstance(val, Decimal):
-            return str(val)
-        return val
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-    # Monta resultado esperado (sempre disponível se query base executou corretamente)
-    resultado_esperado = {
-        "colunas": expected_columns if expected_columns else [],
-        "linhas": []
-    }
-    if expected_rows is not None:
-        for row in expected_rows:
-            resultado_esperado["linhas"].append([format_value(v) for v in row])
+@app.route('/validate', methods=['POST'])
+def validate():
+    data = request.get_json() or {}
 
-    # Monta resultado do aluno (pode ser None se a query não retornou resultado algum, p.ex. comando DML)
-    resultado_aluno = {
-        "colunas": user_columns if user_columns else [],
-        "linhas": []
-    }
-    if user_rows is not None:
-        for row in user_rows:
-            resultado_aluno["linhas"].append([format_value(v) for v in row])
+    # Verifica se questão foi carregada
+    if CURRENT_QUESTION_ID is None or CURRENT_QUESTION_ID not in QUESTOES:
+        return jsonify({'valid': False, 'error': 'Nenhuma questão carregada.'}), 400
 
-    # Incorpora resultados no retorno
-    resultado["resultado_esperado"] = resultado_esperado
-    resultado["resultado_aluno"] = resultado_aluno
+    q = QUESTOES[CURRENT_QUESTION_ID]
+    base_sql = q['resposta_base']
+    enunciado = q['enunciado']
+    student_sql = data.get('student_sql', '').strip()
 
-    # Se a query esperada não retornou colunas (caso inesperado), encerra marcando erro
-    if expected_columns is None:
-        resultado["valido"] = False
-        resultado["erro"] = "Falha ao obter resultado esperado."
-        return resultado
+    if not student_sql:
+        return jsonify({'valid': False, 'error': 'Falta consulta do aluno.', 'enunciado': enunciado}), 400
 
-    # Compara resultados para determinar se a resposta está correta
-    # 1. Compara número de linhas
-    user_count = len(user_rows) if user_rows is not None else 0
-    expected_count = len(expected_rows) if expected_rows is not None else 0
-    if user_count != expected_count:
-        resultado["feedback"] = f"Linhas incorretas. Esperado: {expected_count}"
-        resultado["correto"] = False
-        return resultado
+    # 1) Valida SELECT
+    if not is_select(student_sql):
+        return jsonify({'valid': False, 'error': 'Consulta não inicia com SELECT.', 'enunciado': enunciado}), 200
 
-    # 2. Compara colunas (quantidade e nomes)
-    user_cols_list = user_columns if user_columns is not None else []
-    expected_cols_list = expected_columns if expected_columns is not None else []
-    if len(user_cols_list) != len(expected_cols_list) or user_cols_list != expected_cols_list:
-        resultado["feedback"] = f"Colunas incorretas. Esperado: {', '.join(expected_cols_list)}"
-        resultado["correto"] = False
-        return resultado
+    # 2) Validação de sintaxe/semântica
+    if not executador(student_sql):
+        return jsonify({'valid': False, 'error': 'Erro na execução da consulta (sintaxe ou semântica).', 'enunciado': enunciado}), 200
 
-    # 3. Compara conteúdo das tabelas (considerando ordem conforme necessidade)
-    # Se a query esperada tiver ORDER BY, exige mesma ordem; caso contrário, compara como conjunto (ignora ordem)
-    user_data = user_rows if user_rows is not None else []
-    expected_data = expected_rows if expected_rows is not None else []
-    if "order by" in expected_query.lower():
-        # Compara sequencialmente quando ordem é relevante
-        if user_data != expected_data:
-            resultado["feedback"] = "Dados incorretos."
-            resultado["correto"] = False
-            return resultado
+    # 3) Valida número de linhas
+    cnt_base = get_row_count(base_sql)
+    cnt_student = get_row_count(student_sql)
+    if cnt_base < 0 or cnt_student < 0:
+        return jsonify({'valid': False, 'error': 'Erro ao contar linhas.', 'enunciado': enunciado}), 200
+    if cnt_base != cnt_student:
+        return jsonify({'valid': False, 'error': f'Número de linhas diferente ({cnt_base} vs {cnt_student}).', 'enunciado': enunciado}), 200
+
+    # 4) Validação semântica com Groq
+    equivalent = groq_validate(enunciado, base_sql, student_sql)
+    payload = {'valid': equivalent, 'enunciado': enunciado}
+    if equivalent:
+        payload['message'] = 'OK'
     else:
-        # Compara ignorando ordem (como conjuntos multiconjunto)
-        from collections import Counter
-        if Counter([tuple(row) for row in user_data]) != Counter([tuple(row) for row in expected_data]):
-            resultado["feedback"] = "Dados incorretos."
-            resultado["correto"] = False
-            return resultado
+        payload['error'] = 'Consultas não são semanticamente equivalentes.'
 
-    # Se chegou aqui, a resposta é considerada correta
-    resultado["correto"] = True
-    resultado["feedback"] = "Resposta Correta!"
-    return resultado
+    # Adiciona tabelas para visualização
+    stu_data = fetch_query_results(student_sql)
+    if stu_data:
+        payload['result_table'] = stu_data
+    exp_data = fetch_query_results(base_sql)
+    if exp_data:
+        payload['expected_table'] = exp_data
+
+    return jsonify(payload)
+
+if __name__ == '__main__':
+    app.run(debug=True)
